@@ -11,6 +11,7 @@ import java.util.UUID;
 import com.altapay.proxit.ProxitConnection;
 import com.altapay.proxit.ProxitConnectionHandler;
 import com.altapay.proxit.RawHttpMessage;
+import com.altapay.proxit.RawHttpMessage.MessageType;
 import com.altapay.proxit.RawHttpReceiver;
 import com.altapay.proxit.RawHttpSender;
 import com.altapay.proxit.ResponseSocketProvider;
@@ -36,7 +37,7 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 	{
 		// Connect to server
 		serverSocket = new Socket(serverHost, serverPort);
-		serverCon = new ProxitConnection(this, UUID.randomUUID(), serverSocket);
+		serverCon = new ProxitConnection(this, null, serverSocket);
 		serverCon.start();
 		
 		// Listen for incoming requests
@@ -70,18 +71,21 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 			
 			request = rewriteRequest(request, url);
 
-			System.out.println("Request: "+request);
-			
 			RawHttpMessage response = RawHttpSender.sendRequest(s, request);
-			
-			System.out.println("Response: "+response);
 			
 			// TODO: send this back to the Server, such that it may return it
 			connection.sendMessage(response);
 		}
-		catch (IOException e)
+		catch (Throwable t)
 		{
-			e.printStackTrace();
+			try
+			{
+				connection.sendMessage(RawHttpMessage.get404Response(request.getId(), t.getMessage()));
+			}
+			catch (Throwable e)
+			{
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -107,20 +111,11 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 		throw new RuntimeException("Could not figure out where to post the callback on the dev machine");
 	}
 	
-	private Socket createSocketToDest(URL url)
+	private Socket createSocketToDest(URL url) throws UnknownHostException, IOException
 	{
-		try
-		{
-			boolean https = "https".equals(url.getProtocol());
-			
-			System.out.println();
-			return new Socket(url.getHost(), url.getPort() == -1 ? (https ? 443 : 80) : url.getPort());
-		}
-		catch (IOException e)
-		{
-			e.printStackTrace();
-		}
-		throw new RuntimeException("Could not figure out where to post the callback on the dev machine");
+		boolean https = "https".equals(url.getProtocol());
+		
+		return new Socket(url.getHost(), url.getPort() == -1 ? (https ? 443 : 80) : url.getPort());
 	}
 
 	private RawHttpMessage rewriteRequest(RawHttpMessage orig, URL url) throws UnsupportedEncodingException
@@ -136,7 +131,6 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 		{
 			if(h.startsWith("POST "))
 			{
-				System.out.println(h);
 				String[] parts = h.split(" ");
 				request.addHeader(parts[0]+" "+url.getPath()+(url.getQuery() == null ? "" : "?"+url.getQuery())+" "+parts[2]);
 			}

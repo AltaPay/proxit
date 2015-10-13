@@ -45,7 +45,7 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 		receiver.start();
 		
 		// Listen for clients
-		new Thread(this).start();
+		new Thread(this, "ProxitServer").start();
 	}
 	
 	
@@ -104,11 +104,7 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 			
 			request = rewriteRequest(request);
 			
-			System.out.println("Request: "+request);
-			
 			RawHttpMessage response = RawHttpSender.sendRequest(s, request);
-			
-			System.out.println("Response: "+response);
 			
 			// TODO: send this back to the client, such that it may return it
 			client.sendMessage(response);
@@ -166,12 +162,12 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 		if(config.getGatewaySsl())
 		{
 			SSLSocketFactory factory=(SSLSocketFactory) SSLSocketFactory.getDefault();
-			System.out.println("Connecting to: https://"+config.getGatewayHost()+":443");
+			//System.out.println("Connecting to: https://"+config.getGatewayHost()+":443");
 			return factory.createSocket(config.getGatewayHost(), 443);
 		}
 		else
 		{
-			System.out.println("Connecting to: http://"+config.getGatewayHost()+": 80");
+			//System.out.println("Connecting to: http://"+config.getGatewayHost()+":80");
 			return new Socket(config.getGatewayHost(), 80);
 		}
 	}
@@ -183,7 +179,6 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 		{
 			if(h.startsWith("POST ") || h.startsWith("GET "))
 			{
-				System.out.println(h);
 				String[] parts = h.split(" ");
 				// POST /cb/f5c9f3e5-80ed-4d15-baf4-d0d9fc5e9a0b?http://shopdomain.url/pensiopayment/form.php HTTP/1.1
 				//          |----------------------------------|
@@ -205,6 +200,20 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 	public void proxyResponse(RawHttpMessage response)
 	{
 		RawHttpMessage request = receiver.removeRequest(response.getId());
-		RawHttpSender.sendResponse(request.getSocket(), response);
+		try
+		{
+			RawHttpSender.sendResponse(request.getSocket(), response);
+		}
+		finally
+		{
+			try
+			{
+				request.getSocket().close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
 	}
 }

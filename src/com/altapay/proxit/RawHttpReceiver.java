@@ -22,7 +22,7 @@ public class RawHttpReceiver
 	
 	public void start()
 	{
-		new Thread(new InputThread()).start();
+		new Thread(new InputThread(), "RawHttp("+listenSocket.getLocalPort()+")").start();
 	}
 
 	private class InputThread implements Runnable
@@ -50,12 +50,12 @@ public class RawHttpReceiver
 							}
 							else
 							{
-								write404Response(request, "Could not find client");
+								RawHttpSender.sendResponse(request.getSocket(), RawHttpMessage.get404Response(request.getId(), "Could not find client"));
 							}
 						}
 						catch(Throwable t)
 						{
-							write404Response(request, "Could not find client");
+							RawHttpSender.sendResponse(request.getSocket(), RawHttpMessage.get404Response(request.getId(), t.getMessage()));
 						}
 					}
 				}
@@ -72,16 +72,4 @@ public class RawHttpReceiver
 	{
 		return requests.remove(id);
 	}
-
-	public void write404Response(RawHttpMessage request, String error) throws IOException
-	{
-		String response =
-			"HTTP/1.1 404 "+error+"\r\n"
-			+ "Server: AltaPay DevProxy/2015.10.13 (Ubuntu)\r\n"
-			+ "\r\n"
-			+ "We experienced an error trying to proxy your request to the developer in question";
-		request.getSocket().getOutputStream().write(response.getBytes());
-		request.getSocket().close();
-	}
-
 }

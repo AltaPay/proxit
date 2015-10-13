@@ -36,7 +36,7 @@ public class ProxitConnection
 	public void start() throws IOException
 	{
 		inputThread = new InputThread(new BufferedReader(new InputStreamReader(new BufferedInputStream(socket.getInputStream()))));
-		new Thread(inputThread).start();
+		new Thread(inputThread, "Conn("+id+")").start();
 	}
 	
 	public void stop()
@@ -86,7 +86,6 @@ public class ProxitConnection
 						
 						if(message.getMessageType() == MessageType.REQUEST)
 						{
-							System.out.println("request: "+message);
 							server.proxyRequest(ProxitConnection.this, message);
 						}
 						else if(message.getMessageType() == MessageType.RESPONSE)

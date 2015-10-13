@@ -132,4 +132,29 @@ public class RawHttpMessage
 	{
 		return headers+(body != null ? body : "");
 	}
+	
+	public static RawHttpMessage get404Response(UUID id, String error)
+	{
+		String body = "<html>\n"
+				+ "<head>\n"
+				+ "	<title>Error</title>\n"
+				+ "</head>\n"
+				+ "<body>\n"
+				+ "	<p>We experienced an error trying to proxy your request to the developer in question (error message: "+error+")</p>\n"
+				+ "</body>\n"
+				+ "</html>";
+		RawHttpMessage response = new RawHttpMessage();
+		response.setId(id);
+		response.setMessageType(MessageType.RESPONSE);
+		response.addHeader("HTTP/1.1 404 File Not Found");
+		response.addHeader("Server: AltaPay DevProxy/2015.10.13 (Ubuntu)");
+		response.addHeader("Content-Length: "+body.length());
+		response.addHeader("Connection: close");
+		response.addHeader("Content-Type: text/html");
+		response.addHeader("");
+		
+		response.setBody(body);
+		
+		return response;
+	}
 }

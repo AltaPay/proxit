@@ -56,6 +56,10 @@ public class RawHttpSender
 				bodyLength = Integer.parseInt(line.substring(15).trim());
 				request.addHeader(line);
 			}
+			else if(line.startsWith("Connection: "))
+			{
+				request.addHeader("Connection: close");
+			}
 			else if(line.startsWith("Accept-Encoding: "))
 			{
 				request.addHeader("Accept-Encoding: identity");
@@ -75,7 +79,6 @@ public class RawHttpSender
 		// Read the body
 		if(bodyLength > -1)
 		{
-			System.out.println("bodyLength:"+bodyLength);
 			char[] body = new char[bodyLength];
 			int read = 0;
 			while(read < bodyLength)
@@ -84,7 +87,6 @@ public class RawHttpSender
 				if(r != -1)
 				{
 					read += r;
-					System.out.println("r:"+r+",read:"+read);
 				}
 				else
 				{
@@ -98,16 +100,17 @@ public class RawHttpSender
 		return request;
 	}
 
-	private static void writeHttpBytes(OutputStream out, RawHttpMessage request) throws IOException
+	private static void writeHttpBytes(OutputStream out, RawHttpMessage message) throws IOException
 	{
-		for(String h : request.getHeaders())
+		for(String h : message.getHeaders())
 		{
-			out.write((h+"\n").getBytes());
+			out.write((h+"\r\n").getBytes());
 		}
 		
-		if(request.getBody() != null)
+		if(message.getBody() != null)
 		{
-			out.write(request.getBody().getBytes());
+			out.write(message.getBody().getBytes());
 		}
+		//out.flush();
 	}
 }
