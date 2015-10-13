@@ -40,16 +40,22 @@ public class RawHttpReceiver
 						// Read one request
 						RawHttpMessage request = RawHttpSender.readHttpMessage(clientSocket, RawHttpMessage.MessageType.REQUEST);
 						request.setId(UUID.randomUUID());
-						
-						Socket socket = socketProvider.getSocket(request);
-						if(socket != null)
+						try
 						{
-							requests.put(request.getId(), request);
-							request.writeXmlBytes(socket.getOutputStream());
+							Socket socket = socketProvider.getSocket(request);
+							if(socket != null && !socket.isClosed())
+							{
+								requests.put(request.getId(), request);
+								request.writeXmlBytes(socket.getOutputStream());
+							}
+							else
+							{
+								write404Response(request, "Could not find client");
+							}
 						}
-						else
+						catch(Throwable t)
 						{
-							throw new RuntimeException("Could not find socket for "+request.getId());
+							write404Response(request, "Could not find client");
 						}
 					}
 				}
@@ -65,6 +71,17 @@ public class RawHttpReceiver
 	public RawHttpMessage removeRequest(UUID id)
 	{
 		return requests.remove(id);
+	}
+
+	public void write404Response(RawHttpMessage request, String error) throws IOException
+	{
+		String response =
+			"HTTP/1.1 404 "+error+"\r\n"
+			+ "Server: AltaPay DevProxy/2015.10.13 (Ubuntu)\r\n"
+			+ "\r\n"
+			+ "We experienced an error trying to proxy your request to the developer in question";
+		request.getSocket().getOutputStream().write(response.getBytes());
+		request.getSocket().close();
 	}
 
 }

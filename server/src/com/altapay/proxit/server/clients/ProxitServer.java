@@ -190,6 +190,11 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 				UUID id = UUID.fromString(parts[1].substring(4, 4+32+4));
 				
 				ProxitConnection client = clients.get(id);
+				if(client == null)
+				{
+					throw new RuntimeException("Client has disconnected");
+				}
+					
 				return client.getSocket();
 			}
 		}
