@@ -1,0 +1,5 @@
+
+* Create UI for the client to chose port numbers, etc.
+* Create an ANT build to create a deployable TGZ for use with ansible (to be deployed in taa-tdc on some virtual machine there)
+* Move all replacement logic to the server (keeping the client as thin as possible)
+* Make the proxy-thing capable of doing resource proxying as well (rewrite the "https://resources.pensio.com/xxx" back to the links they were - ignoring HTTPS - would be one solution) 
