@@ -102,7 +102,7 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 			// Open a connection to the destination host
 			Socket s = createSocketToDest();
 			
-			request = rewriteRequest(request);
+			request = rewriteRequestForOutside(request);
 			
 			RawHttpMessage response = RawHttpSender.sendRequest(s, request);
 			
@@ -114,8 +114,29 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public void proxyResponse(RawHttpMessage response)
+	{
+		RawHttpMessage request = receiver.removeRequest(response.getId());
+		try
+		{
+			RawHttpSender.sendResponse(request.getSocket(), response);
+		}
+		finally
+		{
+			try
+			{
+				request.getSocket().close();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+		}
+	}
 
-	private RawHttpMessage rewriteRequest(RawHttpMessage orig) throws UnsupportedEncodingException
+	private RawHttpMessage rewriteRequestForOutside(RawHttpMessage orig) throws UnsupportedEncodingException
 	{
 		RawHttpMessage request = new RawHttpMessage();
 		request.setId(orig.getId());
@@ -194,26 +215,5 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 			}
 		}
 		throw new RuntimeException("Cannot find a POST or GET line in the headers");
-	}
-
-	@Override
-	public void proxyResponse(RawHttpMessage response)
-	{
-		RawHttpMessage request = receiver.removeRequest(response.getId());
-		try
-		{
-			RawHttpSender.sendResponse(request.getSocket(), response);
-		}
-		finally
-		{
-			try
-			{
-				request.getSocket().close();
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-		}
 	}
 }

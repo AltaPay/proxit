@@ -69,7 +69,7 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 			
 			Socket s = createSocketToDest(url);
 			
-			request = rewriteRequest(request, url);
+			request = rewriteRequestForInside(request, url);
 
 			RawHttpMessage response = RawHttpSender.sendRequest(s, request);
 			
@@ -118,7 +118,7 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 		return new Socket(url.getHost(), url.getPort() == -1 ? (https ? 443 : 80) : url.getPort());
 	}
 
-	private RawHttpMessage rewriteRequest(RawHttpMessage orig, URL url) throws UnsupportedEncodingException
+	private RawHttpMessage rewriteRequestForInside(RawHttpMessage orig, URL url) throws UnsupportedEncodingException
 	{
 		RawHttpMessage request = new RawHttpMessage();
 		request.setMessageType(orig.getMessageType());
