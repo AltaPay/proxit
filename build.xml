@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project default="jars" name="Create Runnable Jar for Project Proxit">
+	
+	<target name="jars">
+		<antcall target="ProxitRemoteServer.jar" />
+		<antcall target="ProxitLocalServer.jar" />
+	</target>
+	
+	<target name="ProxitRemoteServer.jar">
+		<jar destfile="dist/ProxitRemoteServer.jar" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="com.altapay.proxit.server.LaunchServer"/>
+				<attribute name="Class-Path" value="."/>
+			</manifest>
+			<fileset dir="/home/emanuel/Development/workspace_jee/Proxit/bin">
+				<include name="**/*"/>
+				<exclude name="com/altapay/proxit/client"/>
+				<exclude name="com/altapay/proxit/client/**/*"/>
+			</fileset>
+			<zipfileset excludes="META-INF/*.SF" src="/home/emanuel/Development/workspace_jee/Proxit/lib/bcprov-jdk14-144.jar"/>
+		</jar>
+	</target>
+	<target name="ProxitLocalServer.jar">
+		<jar destfile="dist/ProxitLocalServer.jar" filesetmanifest="mergewithoutmain">
+			<manifest>
+				<attribute name="Main-Class" value="com.altapay.proxit.server.LaunchServer"/>
+				<attribute name="Class-Path" value="."/>
+			</manifest>
+			<fileset dir="/home/emanuel/Development/workspace_jee/Proxit/bin">
+				<include name="**/*"/>
+				<exclude name="com/altapay/proxit/server"/>
+				<exclude name="com/altapay/proxit/server/**/*"/>
+			</fileset>
+			<zipfileset excludes="META-INF/*.SF" src="/home/emanuel/Development/workspace_jee/Proxit/lib/bcprov-jdk14-144.jar"/>
+		</jar>
+	</target>
+</project>

@@ -39,11 +39,13 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 		serverSocket = new Socket(serverHost, serverPort);
 		serverCon = new ProxitConnection(this, null, serverSocket);
 		serverCon.start();
+		System.out.println("Connected to "+serverHost+":"+serverPort);
 		
 		// Listen for incoming requests
 		ServerSocket listenSocket = new ServerSocket(listenPort);
 		httpRequestReceiver = new RawHttpReceiver(listenSocket, this);
 		httpRequestReceiver.start();
+		System.out.println("Listening on port "+listenPort);
 	}
 
 	@Override

@@ -43,9 +43,12 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 		// Listen for callbacks
 		receiver = new RawHttpReceiver(callbackSocket, this);
 		receiver.start();
+		System.out.println("Listen for callback on port: "+config.getCallbackListenPort());
 		
 		// Listen for clients
 		new Thread(this, "ProxitServer").start();
+		
+		System.out.println("Listen for clients on port: "+config.getClientListenPort());
 	}
 	
 	
