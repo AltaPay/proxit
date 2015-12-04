@@ -34,7 +34,7 @@ public class LaunchClient
 		public OptionPaneTest()
 		{
 			myPanel.add(new JLabel("Remote Host"));
-			hostField.setText("shipall24.devaltapaysecure.dk");
+			hostField.setText("proxitremote.devaltapaysecure.dk");
 			myPanel.add(hostField);
 			
 			myPanel.add(new JLabel("Remote Port"));
