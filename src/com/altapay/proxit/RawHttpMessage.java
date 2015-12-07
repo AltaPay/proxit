@@ -157,4 +157,17 @@ public class RawHttpMessage
 		
 		return response;
 	}
+
+	public boolean isContentTypeText()
+	{
+		for(String h : headers)
+		{
+			if(h.startsWith("Content-Type:"))
+			{
+				if(h.contains("text"))
+					return true;
+			}
+		}
+		return false;
+	}
 }

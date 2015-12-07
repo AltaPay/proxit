@@ -74,11 +74,8 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 
 			RawHttpMessage response = RawHttpSender.sendRequest(s, request);
 			
-			System.out.println("url:"+url);
-			HTMLUrlRewriter rewriter = new HTMLUrlRewriter();
-			System.out.println(rewriter.makeUrlsAbsolute(url, new StringBuffer(response.getBody())));
+			response = rewriteResponseFromTheInside(url, response);
 			
-			// TODO: send this back to the Server, such that it may return it
 			connection.sendMessage(response);
 		}
 		catch (Throwable t)
@@ -93,12 +90,39 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 			}
 		}
 	}
+
+	private RawHttpMessage rewriteResponseFromTheInside(URL url, RawHttpMessage orig)
+	{
+		RawHttpMessage response = new RawHttpMessage();
+		response.setId(orig.getId());
+		response.setConnectionId(orig.getConnectionId());
+		response.setMessageType(orig.getMessageType());
+		response.setSocket(orig.getSocket());
+
+		HTMLUrlRewriter rewriter = new HTMLUrlRewriter();
+		response.setBody(rewriter.makeUrlsAbsolute(url, new StringBuffer(orig.getBody())).toString());
+		
+		for(String h : orig.getHeaders())
+		{
+			if(h.startsWith("Location:"))
+			{
+				String[] parts = h.split(":", 2);
+				response.addHeader("Location: "+rewriter.createAbsoluteUrl(url, parts[1].trim()));
+			}
+			else
+			{
+				response.addHeader(h);
+			}
+		}
+		
+		return response;
+	}
 	
 	private URL getUrlToCallbackTo(RawHttpMessage request)
 	{
 		for(String h : request.getHeaders())
 		{
-			if(h.startsWith("POST "))
+			if(h.startsWith("POST ") || h.startsWith("GET "))
 			{
 				String[] parts = h.split(" ");
 				String[] paths = parts[1].split("\\?", 2);
@@ -134,7 +158,7 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 		
 		for(String h : orig.getHeaders())
 		{
-			if(h.startsWith("POST "))
+			if(h.startsWith("POST ") || h.startsWith("GET "))
 			{
 				String[] parts = h.split(" ");
 				request.addHeader(parts[0]+" "+url.getPath()+(url.getQuery() == null ? "" : "?"+url.getQuery())+" "+parts[2]);

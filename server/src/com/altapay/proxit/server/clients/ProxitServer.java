@@ -109,7 +109,6 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 			
 			RawHttpMessage response = RawHttpSender.sendRequest(s, request);
 			
-			// TODO: send this back to the client, such that it may return it
 			client.sendMessage(response);
 		}
 		catch(IOException e)
@@ -124,6 +123,13 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 		RawHttpMessage request = receiver.removeRequest(response.getId());
 		try
 		{
+			// TODO: send this back to the client, such that it may return it
+			ResourcesProxyRewriter rewriter = new ResourcesProxyRewriter();
+			if(response.isContentTypeText())
+			{
+				response.setBody(rewriter.proxyResourceUrls(config.getCallbackBaseUrl()+"/cb/"+response.getConnectionId()+"?", new StringBuffer(response.getBody())).toString());
+			}
+			
 			RawHttpSender.sendResponse(request.getSocket(), response);
 		}
 		finally
@@ -167,11 +173,7 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 		
 		for(String h : orig.getHeaders())
 		{
-			if(h.startsWith("Content-Length: "))
-			{
-				request.addHeader("Content-Length: "+body.length());
-			}
-			else if(h.startsWith("Host: "))
+			if(h.startsWith("Host: "))
 			{
 				request.addHeader("Host: "+config.getGatewayHost());
 			}

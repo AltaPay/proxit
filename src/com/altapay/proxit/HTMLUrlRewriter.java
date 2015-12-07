@@ -13,10 +13,8 @@ public class HTMLUrlRewriter
 		{
 			html = makeAbsolute(url, html, "(<img[^>]*)(src="+quoteChar+")([^"+quoteChar+"]*)("+quoteChar+"[^>]*>)");
 			html = makeAbsolute(url, html, "(<script[^>]*)(src="+quoteChar+")([^"+quoteChar+"]*)("+quoteChar+"[^>]*>)");
-			html = makeAbsolute(url, html, "(<link[^>]*rel="+quoteChar+"stylesheet"+quoteChar+"[^>]*)(href="+quoteChar+")([^"+quoteChar+"]*)("+quoteChar+"[^>]*>)");
-			html = makeAbsolute(url, html, "(<link[^>]*)(href="+quoteChar+")([^"+quoteChar+"]*)("+quoteChar+"[^>]*rel="+quoteChar+"stylesheet"+quoteChar+"[^>]*>)");
-			html = makeAbsolute(url, html, "(<link[^>]*rel="+quoteChar+"shortcut icon"+quoteChar+"[^>]*)(href="+quoteChar+")([^"+quoteChar+"]*)("+quoteChar+"[^>]*>)");
-			html = makeAbsolute(url, html, "(<link[^>]*)(href="+quoteChar+")([^"+quoteChar+"]*)("+quoteChar+"[^>]*rel="+quoteChar+"shortcut icon"+quoteChar+"[^>]*>)");
+			html = makeAbsolute(url, html, "(<link[^>]*rel="+quoteChar+"[^"+quoteChar+"]+"+quoteChar+"[^>]*)(href="+quoteChar+")([^"+quoteChar+"]*)("+quoteChar+"[^>]*>)");
+			html = makeAbsolute(url, html, "(<link[^>]*)(href="+quoteChar+")([^"+quoteChar+"]*)("+quoteChar+"[^>]*rel="+quoteChar+"[^"+quoteChar+"]+"+quoteChar+"[^>]*>)");
 			html = makeAbsolute(url, html, "(<link[^>]*rel="+quoteChar+"icon"+quoteChar+"[^>]*)(href="+quoteChar+")([^"+quoteChar+"]*)("+quoteChar+"[^>]*>)");
 			html = makeAbsolute(url, html, "(<link[^>]*)(href="+quoteChar+")([^"+quoteChar+"]*)("+quoteChar+"[^>]*rel="+quoteChar+"icon"+quoteChar+"[^>]*>)");
 			html = makeAbsolute(url, html, "(<a[^>]*)(href="+quoteChar+")([^"+quoteChar+"]*)("+quoteChar+"[^>]*>)");
@@ -44,7 +42,7 @@ public class HTMLUrlRewriter
 		return html;
 	}
 
-	private String createAbsoluteUrl(URL url, String relative)
+	public String createAbsoluteUrl(URL url, String relative)
 	{
 		try
 		{

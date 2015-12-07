@@ -104,6 +104,10 @@ public class RawHttpSender
 	{
 		for(String h : message.getHeaders())
 		{
+			if(h.startsWith("Content-Length: "))
+			{
+				h = "Content-Length: "+message.getBody().length();
+			}
 			out.write((h+"\r\n").getBytes());
 		}
 		
@@ -111,6 +115,5 @@ public class RawHttpSender
 		{
 			out.write(message.getBody().getBytes());
 		}
-		//out.flush();
 	}
 }
