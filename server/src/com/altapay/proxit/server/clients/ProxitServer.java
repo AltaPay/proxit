@@ -145,22 +145,25 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 		request.setId(orig.getId());
 		
 		String body = "";
-		for(String s : orig.getBody().split("&"))
+		if(orig.getBody() != null)
 		{
-			String[] parts = s.split("=", 2);
-			String key = URLDecoder.decode(parts[0], "utf-8");
-			String value = URLDecoder.decode(parts.length > 1 ? parts[1] : "", "utf-8");
-			if(key.startsWith("config[callback_") && !"".equals(value))
+			for(String s : orig.getBody().split("&"))
 			{
-				value = config.getCallbackBaseUrl()+"/cb/"+orig.getConnectionId()+"?"+value;
+				String[] parts = s.split("=", 2);
+				String key = URLDecoder.decode(parts[0], "utf-8");
+				String value = URLDecoder.decode(parts.length > 1 ? parts[1] : "", "utf-8");
+				if(key.startsWith("config[callback_") && !"".equals(value))
+				{
+					value = config.getCallbackBaseUrl()+"/cb/"+orig.getConnectionId()+"?"+value;
+				}
+				if(body.length() != 0)
+				{
+					body += "&";
+				}
+				body += URLEncoder.encode(key, "utf-8")+"="+URLEncoder.encode(value, "utf-8");
 			}
-			if(body.length() != 0)
-			{
-				body += "&";
-			}
-			body += URLEncoder.encode(key, "utf-8")+"="+URLEncoder.encode(value, "utf-8");
+			request.setBody(body);
 		}
-		request.setBody(body);
 		
 		for(String h : orig.getHeaders())
 		{

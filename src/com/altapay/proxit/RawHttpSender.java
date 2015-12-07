@@ -49,7 +49,7 @@ public class RawHttpSender
 			line = in.readLine();
 			if(line == null)
 			{
-				throw new IOException("Connection closed before we read the whole HTTP request");
+				throw new IOException("Connection closed before we read the whole HTTP request: "+request.getHeaders());
 			}
 			else if(line.startsWith("Content-Length: "))
 			{

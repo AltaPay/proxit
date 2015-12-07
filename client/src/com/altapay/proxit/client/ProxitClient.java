@@ -6,12 +6,11 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
-import java.util.UUID;
 
+import com.altapay.proxit.HTMLUrlRewriter;
 import com.altapay.proxit.ProxitConnection;
 import com.altapay.proxit.ProxitConnectionHandler;
 import com.altapay.proxit.RawHttpMessage;
-import com.altapay.proxit.RawHttpMessage.MessageType;
 import com.altapay.proxit.RawHttpReceiver;
 import com.altapay.proxit.RawHttpSender;
 import com.altapay.proxit.ResponseSocketProvider;
@@ -74,6 +73,10 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 			request = rewriteRequestForInside(request, url);
 
 			RawHttpMessage response = RawHttpSender.sendRequest(s, request);
+			
+			System.out.println("url:"+url);
+			HTMLUrlRewriter rewriter = new HTMLUrlRewriter();
+			System.out.println(rewriter.makeUrlsAbsolute(url, new StringBuffer(response.getBody())));
 			
 			// TODO: send this back to the Server, such that it may return it
 			connection.sendMessage(response);
