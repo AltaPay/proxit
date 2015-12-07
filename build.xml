@@ -23,7 +23,7 @@
 	<target name="ProxitLocalServer.jar">
 		<jar destfile="dist/ProxitLocalServer.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
-				<attribute name="Main-Class" value="com.altapay.proxit.server.LaunchServer"/>
+				<attribute name="Main-Class" value="com.altapay.proxit.client.LaunchClient"/>
 				<attribute name="Class-Path" value="."/>
 			</manifest>
 			<fileset dir="/home/emanuel/Development/workspace_jee/Proxit/bin">
