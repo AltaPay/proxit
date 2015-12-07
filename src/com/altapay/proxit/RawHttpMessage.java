@@ -18,7 +18,7 @@ public class RawHttpMessage
 	private UUID id;
 	private UUID connectionId;
 	ArrayList<String> headers = new ArrayList<>();
-	private String body;
+	private byte[] body;
 	public enum MessageType {
 		REQUEST,
 		RESPONSE
@@ -66,12 +66,12 @@ public class RawHttpMessage
 	}
 	
 	@XmlTransient
-	public void setBody(String body)
+	public void setBody(byte[] body)
 	{
 		this.body = body;
 	}
 	
-	public String getBody()
+	public byte[] getBody()
 	{
 		return body;
 	}
@@ -101,12 +101,12 @@ public class RawHttpMessage
 	
 	public String getBase64Body()
 	{
-		return (body != null ? DatatypeConverter.printBase64Binary(body.getBytes()) : null);
+		return (body != null ? DatatypeConverter.printBase64Binary(body) : null);
 	}
 
 	public void setBase64Body(String body)
 	{
-		this.body = (body != null ? new String(DatatypeConverter.parseBase64Binary(body)) : null);
+		this.body = (body != null ? DatatypeConverter.parseBase64Binary(body) : null);
 	}
 
 	public void writeXmlBytes(OutputStream out)
@@ -130,7 +130,7 @@ public class RawHttpMessage
 	@Override
 	public String toString()
 	{
-		return headers+(body != null ? body : "");
+		return headers+(body != null ? "Body[length:"+body.length+"]" : "");
 	}
 	
 	public static RawHttpMessage get404Response(UUID id, String error)
@@ -153,7 +153,7 @@ public class RawHttpMessage
 		response.addHeader("Content-Type: text/html");
 		response.addHeader("");
 		
-		response.setBody(body);
+		response.setBody(body.getBytes());
 		
 		return response;
 	}

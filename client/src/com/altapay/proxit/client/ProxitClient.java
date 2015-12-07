@@ -100,7 +100,14 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 		response.setSocket(orig.getSocket());
 
 		HTMLUrlRewriter rewriter = new HTMLUrlRewriter();
-		response.setBody(rewriter.makeUrlsAbsolute(url, new StringBuffer(orig.getBody())).toString());
+		if(orig.isContentTypeText())
+		{
+			response.setBody(rewriter.makeUrlsAbsolute(url, new StringBuffer(new String(orig.getBody()))).toString().getBytes());
+		}
+		else
+		{
+			response.setBody(orig.getBody());
+		}
 		
 		for(String h : orig.getHeaders())
 		{

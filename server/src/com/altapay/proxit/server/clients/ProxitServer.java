@@ -127,7 +127,8 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 			ResourcesProxyRewriter rewriter = new ResourcesProxyRewriter();
 			if(response.isContentTypeText())
 			{
-				response.setBody(rewriter.proxyResourceUrls(config.getCallbackBaseUrl()+"/cb/"+response.getConnectionId()+"?", new StringBuffer(response.getBody())).toString());
+				StringBuffer b = rewriter.proxyResourceUrls(config.getCallbackBaseUrl()+"/cb/"+response.getConnectionId()+"?", new StringBuffer(new String(response.getBody())));
+				response.setBody(b.toString().getBytes());
 			}
 			
 			RawHttpSender.sendResponse(request.getSocket(), response);
@@ -153,7 +154,7 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 		String body = "";
 		if(orig.getBody() != null)
 		{
-			for(String s : orig.getBody().split("&"))
+			for(String s : new String(orig.getBody()).split("&"))
 			{
 				String[] parts = s.split("=", 2);
 				String key = URLDecoder.decode(parts[0], "utf-8");
@@ -168,7 +169,7 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 				}
 				body += URLEncoder.encode(key, "utf-8")+"="+URLEncoder.encode(value, "utf-8");
 			}
-			request.setBody(body);
+			request.setBody(body.getBytes());
 		}
 		
 		for(String h : orig.getHeaders())

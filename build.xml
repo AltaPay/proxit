@@ -18,6 +18,7 @@
 				<exclude name="com/altapay/proxit/client/**/*"/>
 			</fileset>
 			<zipfileset excludes="META-INF/*.SF" src="/home/emanuel/Development/workspace_jee/Proxit/lib/bcprov-jdk14-144.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="/home/emanuel/Development/workspace_jee/Proxit/lib/guave.jar"/>
 		</jar>
 	</target>
 	<target name="ProxitLocalServer.jar">

@@ -1,12 +1,17 @@
 package com.altapay.proxit;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.util.Arrays;
 
 import com.altapay.proxit.RawHttpMessage.MessageType;
+import com.google.common.io.ByteStreams;
 
 public class RawHttpSender
 {
@@ -35,6 +40,7 @@ public class RawHttpSender
 	
 	public static RawHttpMessage readHttpMessage(Socket clientSocket, RawHttpMessage.MessageType type) throws IOException
 	{
+		//byte[] responseBytes = ByteStreams.toByteArray(clientSocket.getInputStream());
 		BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		
 		RawHttpMessage request = new RawHttpMessage();
@@ -76,6 +82,8 @@ public class RawHttpSender
 		}
 		while(!"".equals(line));
 		
+		
+		
 		// Read the body
 		if(bodyLength > -1)
 		{
@@ -94,7 +102,7 @@ public class RawHttpSender
 					break;
 				}
 			}
-			request.setBody(new String(body));
+			request.setBody(new String(body).getBytes());
 		}
 
 		return request;
@@ -106,14 +114,14 @@ public class RawHttpSender
 		{
 			if(h.startsWith("Content-Length: "))
 			{
-				h = "Content-Length: "+message.getBody().length();
+				h = "Content-Length: "+message.getBody().length;
 			}
 			out.write((h+"\r\n").getBytes());
 		}
 		
 		if(message.getBody() != null)
 		{
-			out.write(message.getBody().getBytes());
+			out.write(message.getBody());
 		}
 	}
 }
