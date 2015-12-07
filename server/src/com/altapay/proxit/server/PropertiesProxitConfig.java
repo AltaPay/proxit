@@ -12,15 +12,15 @@ public class PropertiesProxitConfig implements IProxitConfig {
 
 	@Override
 	public String getGatewayHost() {
-		//return properties.getProperty("gatewayHost","testgateway.altapaysecure.com");
-		return properties.getProperty("gatewayHost","gateway.dev.pensio.com");
+		return properties.getProperty("gatewayHost","testgateway.altapaysecure.com");
+		//return properties.getProperty("gatewayHost","gateway.dev.pensio.com");
 	}
 
 	@Override
 	public boolean getGatewaySsl()
 	{
-		return "true".equals(properties.getProperty("gatewaySsl","false"));
-		//return "true".equals(properties.getProperty("gatewaySsl","true"));
+		//return "true".equals(properties.getProperty("gatewaySsl","false"));
+		return "true".equals(properties.getProperty("gatewaySsl","true"));
 	}
 
 	@Override
@@ -32,7 +32,7 @@ public class PropertiesProxitConfig implements IProxitConfig {
 	@Override
 	public String getCallbackBaseUrl()
 	{
-		return properties.getProperty("gatewayHost","http://localhost:8080");
+		return properties.getProperty("gatewayHost","http://proxitremote.devaltapaysecure.dk:8080");
 	}
 
 	@Override
