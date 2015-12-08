@@ -13,10 +13,10 @@ import java.util.UUID;
 
 import javax.net.ssl.SSLSocketFactory;
 
+import com.altapay.proxit.HttpProxyServer;
 import com.altapay.proxit.ProxitConnection;
 import com.altapay.proxit.ProxitConnectionHandler;
 import com.altapay.proxit.RawHttpMessage;
-import com.altapay.proxit.RawHttpReceiver;
 import com.altapay.proxit.RawHttpSender;
 import com.altapay.proxit.ResponseSocketProvider;
 import com.altapay.proxit.server.IProxitConfig;
@@ -26,8 +26,7 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 	private ServerSocket socket;
 	private Map<UUID,ProxitConnection> clients = new HashMap<>();
 	private IProxitConfig config;
-	private ServerSocket callbackSocket;
-	private RawHttpReceiver receiver;
+	private HttpProxyServer receiver;
 
 	public ProxitServer(IProxitConfig config)
 	{
@@ -37,13 +36,11 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 	public void start() throws UnknownHostException, IOException
 	{
 		// Open ports
-		callbackSocket = new ServerSocket(config.getCallbackListenPort());
 		socket = new ServerSocket(config.getClientListenPort());
 		
 		// Listen for callbacks
-		receiver = new RawHttpReceiver(callbackSocket, this);
+		receiver = new HttpProxyServer(config.getCallbackListenPort(), this);
 		receiver.start();
-		System.out.println("Listen for callback on port: "+config.getCallbackListenPort());
 		
 		// Listen for clients
 		new Thread(this, "ProxitServer").start();
@@ -121,35 +118,23 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 	public void proxyResponse(RawHttpMessage response)
 	{
 		RawHttpMessage request = receiver.removeRequest(response.getId());
-		try
+		// TODO: send this back to the client, such that it may return it
+		ResourcesProxyRewriter rewriter = new ResourcesProxyRewriter();
+		if(response.getBody() != null)
 		{
-			// TODO: send this back to the client, such that it may return it
-			ResourcesProxyRewriter rewriter = new ResourcesProxyRewriter();
 			if(response.isContentTypeText())
 			{
 				StringBuffer b = rewriter.proxyResourceUrls(config.getCallbackBaseUrl()+"/cb/"+response.getConnectionId()+"?", new StringBuffer(new String(response.getBody())));
 				response.setBody(b.toString().getBytes());
 			}
-			
-			RawHttpSender.sendResponse(request.getSocket(), response);
 		}
-		finally
-		{
-			try
-			{
-				request.getSocket().close();
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-		}
+		
+		request.setResponse(response);
 	}
 
 	private RawHttpMessage rewriteRequestForOutside(RawHttpMessage orig) throws UnsupportedEncodingException
 	{
-		RawHttpMessage request = new RawHttpMessage();
-		request.setId(orig.getId());
+		RawHttpMessage request = orig.copy();
 		
 		String body = "";
 		if(orig.getBody() != null)
@@ -173,18 +158,8 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 			request.setBody(body.getBytes());
 			System.out.println("Body[after]: "+new String(body.getBytes()));
 		}
-		
-		for(String h : orig.getHeaders())
-		{
-			if(h.toLowerCase().startsWith("host: "))
-			{
-				request.addHeader("Host: "+config.getGatewayHost());
-			}
-			else
-			{
-				request.addHeader(h);
-			}
-		}
+
+		request.setHeader("Host", config.getGatewayHost());
 		
 		return request;
 	}
@@ -207,24 +182,16 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 	@Override
 	public Socket getSocket(RawHttpMessage message)
 	{
-		for(String h : message.getHeaders())
+		// POST /cb/f5c9f3e5-80ed-4d15-baf4-d0d9fc5e9a0b?http://shopdomain.url/pensiopayment/form.php HTTP/1.1
+		//          |----------------------------------|
+		UUID id = UUID.fromString(message.getRequestPath().substring(4, 4+32+4));
+		
+		ProxitConnection client = clients.get(id);
+		if(client == null)
 		{
-			if(h.startsWith("POST ") || h.startsWith("GET "))
-			{
-				String[] parts = h.split(" ");
-				// POST /cb/f5c9f3e5-80ed-4d15-baf4-d0d9fc5e9a0b?http://shopdomain.url/pensiopayment/form.php HTTP/1.1
-				//          |----------------------------------|
-				UUID id = UUID.fromString(parts[1].substring(4, 4+32+4));
-				
-				ProxitConnection client = clients.get(id);
-				if(client == null)
-				{
-					throw new RuntimeException("Client has disconnected");
-				}
-					
-				return client.getSocket();
-			}
+			throw new RuntimeException("Client has disconnected");
 		}
-		throw new RuntimeException("Cannot find a POST or GET line in the headers");
+			
+		return client.getSocket();
 	}
 }

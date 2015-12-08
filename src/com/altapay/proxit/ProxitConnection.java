@@ -10,7 +10,10 @@ import java.util.UUID;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
+import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.Unmarshaller;
+
+import org.xml.sax.SAXParseException;
 
 import com.altapay.proxit.RawHttpMessage.MessageType;
 
@@ -81,6 +84,7 @@ public class ProxitConnection
 					String line = in.readLine();
 					if(line != null)
 					{
+						System.out.println("\n==== xml in from client("+getId()+"):\n"+line+"\n=====\n");
 						RawHttpMessage message = (RawHttpMessage)unmarchaller.unmarshal(new StringReader(line.trim()));
 						message.setConnectionId(id);
 						
@@ -107,14 +111,17 @@ public class ProxitConnection
 			catch (JAXBException e1)
 			{
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				e1.printStackTrace(System.out);
 			}
 			catch (IOException e)
 			{
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				e.printStackTrace(System.out);
 			}
-			stop();
+			finally
+			{
+				stop();
+			}
 		}
 	}
 

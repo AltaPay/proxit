@@ -7,8 +7,6 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import sun.awt.VerticalBagLayout;
-
 public class LaunchClient
 {
 	public static void main(String[] args) throws Exception

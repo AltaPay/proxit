@@ -13,7 +13,6 @@ import com.google.common.io.ByteStreams;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import com.sun.net.httpserver.HttpServer;
-import com.sun.xml.internal.ws.util.ByteArrayBuffer;
 
 public class HttpProxyServer implements HttpHandler
 {
@@ -47,33 +46,17 @@ public class HttpProxyServer implements HttpHandler
 		request.setHttpExchange(httpExchange);
 		
 		// Read the header
-		boolean foundAcceptEncoding = false;
-		request.addHeader(httpExchange.getRequestMethod()+" "+httpExchange.getRequestURI()+" HTTP/1.1");
-		for(Entry<String, List<String>> entry : httpExchange.getRequestHeaders().entrySet())
+		request.setRequestHttpMethod(httpExchange.getRequestMethod());
+		request.setRequestPath(httpExchange.getRequestURI().toString());
+		for(Entry<String,List<String>> entry : httpExchange.getRequestHeaders().entrySet())
 		{
-			System.out.println("entry:"+entry.getKey()+" ("+entry.getValue()+")");
-			for(String s : entry.getValue())
+			for(String v : entry.getValue())
 			{
-				if(entry.getKey().equals("Connection"))
-				{
-					request.addHeader("Connection: close");
-				}
-				else if(entry.getKey().equals("Accept-Encoding"))
-				{
-					request.addHeader("Accept-Encoding: identity");
-					foundAcceptEncoding = true;
-				}
-				else
-				{
-					request.addHeader(entry.getKey()+": "+s);
-				}
+				request.addHeader(entry.getKey(), v);
 			}
 		}
-		if(!foundAcceptEncoding)
-		{
-			request.addHeader("Accept-Encoding: identity");
-		}
-		request.addHeader("");
+		request.setHeader("Connection", "close");
+		request.setHeader("Accept-Encoding", "identity");
 		
 		// Read the body
 		byte[] body = ByteStreams.toByteArray(httpExchange.getRequestBody());
@@ -88,30 +71,32 @@ public class HttpProxyServer implements HttpHandler
 				{
 					requests.put(request.getId(), request);
 					request.writeXmlBytes(socket.getOutputStream());
+					
+					try
+					{
+						request.wait(1000 * 60); // We only wait 60 seconds.
+						request.handleResponse();
+					}
+					catch (InterruptedException e)
+					{
+						e.printStackTrace();
+					}
 				}
 				else
 				{
-					RawHttpSender.sendResponse(request.getSocket(), RawHttpMessage.get404Response(request.getId(), "Could not find client"));
+					request.setResponse(RawHttpMessage.get404Response(request.getId(), "Could not find client"));
+					request.handleResponse();
 				}
 			}
 			catch(Throwable t)
 			{
-				RawHttpSender.sendResponse(request.getSocket(), RawHttpMessage.get404Response(request.getId(), t.getMessage()));
-			}
-		
-			try
-			{
-				request.wait(1000 * 60); // We only wait 60 seconds.
+				request.setResponse(RawHttpMessage.get404Response(request.getId(), t.getMessage()));
 				request.handleResponse();
-			}
-			catch (InterruptedException e)
-			{
-				e.printStackTrace();
 			}
 		}
 	}
 	
-	public RawHttpMessage removeRequest(UUID id)
+	public synchronized RawHttpMessage removeRequest(UUID id)
 	{
 		return requests.remove(id);
 	}

@@ -5,7 +5,7 @@ import java.util.Properties;
 public class PropertiesProxitConfig implements IProxitConfig {
 
 	protected Properties properties;
-	private boolean isDev = false;
+	private boolean isDev = true;
 
 	public PropertiesProxitConfig(Properties properties) {
 		this.properties = properties;

@@ -1,9 +1,7 @@
 package com.altapay.proxit.client;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -12,11 +10,10 @@ import com.altapay.proxit.HTMLUrlRewriter;
 import com.altapay.proxit.HttpProxyServer;
 import com.altapay.proxit.ProxitConnection;
 import com.altapay.proxit.ProxitConnectionHandler;
+import com.altapay.proxit.RawHttpHeader;
 import com.altapay.proxit.RawHttpMessage;
-import com.altapay.proxit.RawHttpReceiver;
 import com.altapay.proxit.RawHttpSender;
 import com.altapay.proxit.ResponseSocketProvider;
-import com.sun.net.httpserver.HttpExchange;
 
 public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHandler
 {
@@ -81,6 +78,7 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 		}
 		catch (Throwable t)
 		{
+			t.printStackTrace(System.out);
 			try
 			{
 				connection.sendMessage(RawHttpMessage.get404Response(request.getId(), t.getMessage()));
@@ -94,28 +92,26 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 
 	private RawHttpMessage rewriteResponseFromTheInside(URL url, RawHttpMessage orig)
 	{
-		RawHttpMessage response = new RawHttpMessage();
-		response.setId(orig.getId());
-		response.setConnectionId(orig.getConnectionId());
-		response.setMessageType(orig.getMessageType());
-		response.setSocket(orig.getSocket());
+		RawHttpMessage response = orig.copy();
 
 		HTMLUrlRewriter rewriter = new HTMLUrlRewriter();
-		if(orig.isContentTypeText())
+		if(orig.getBody() != null)
 		{
-			response.setBody(rewriter.makeUrlsAbsolute(url, new StringBuffer(new String(orig.getBody()))).toString().getBytes());
-		}
-		else
-		{
-			response.setBody(orig.getBody());
+			if(orig.isContentTypeText())
+			{
+				response.setBody(rewriter.makeUrlsAbsolute(url, new StringBuffer(new String(orig.getBody()))).toString().getBytes());
+			}
+			else
+			{
+				response.setBody(orig.getBody());
+			}
 		}
 		
-		for(String h : orig.getHeaders())
+		for(RawHttpHeader h : orig.getHeaders())
 		{
-			if(h.toLowerCase().startsWith("location:"))
+			if(h.matches("Location"))
 			{
-				String[] parts = h.split(":", 2);
-				response.addHeader("Location: "+rewriter.createAbsoluteUrl(url, parts[1].trim()));
+				response.addHeader(h.getKey(), rewriter.createAbsoluteUrl(url, h.getValue()));
 			}
 			else
 			{
@@ -128,24 +124,21 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 	
 	private URL getUrlToCallbackTo(RawHttpMessage request)
 	{
-		for(String h : request.getHeaders())
+		String[] paths = request.getRequestPath().split("\\?", 2);
+		if(paths.length != 2)
 		{
-			if(h.startsWith("POST ") || h.startsWith("GET "))
-			{
-				String[] parts = h.split(" ");
-				String[] paths = parts[1].split("\\?", 2);
-				
-				try
-				{
-					return new URL(paths[1]);
-				}
-				catch (IOException e)
-				{
-					e.printStackTrace();
-				}
-			}
+			throw new RuntimeException("No ? in the URL: "+request.getRequestPath());
 		}
-		throw new RuntimeException("Could not figure out where to post the callback on the dev machine");
+		
+		try
+		{
+			return new URL(paths[1]);
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+		}
+		throw new RuntimeException("Could not figure out where to post the callback on the dev machine: "+request.getRequestPath());
 	}
 	
 	private Socket createSocketToDest(URL url) throws UnknownHostException, IOException
@@ -157,29 +150,10 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 
 	private RawHttpMessage rewriteRequestForInside(RawHttpMessage orig, URL url) throws UnsupportedEncodingException
 	{
-		RawHttpMessage request = new RawHttpMessage();
-		request.setMessageType(orig.getMessageType());
-		request.setId(orig.getId());
-		request.setBody(orig.getBody());
-		request.setConnectionId(orig.getConnectionId());
+		RawHttpMessage request = orig.copy();
 		
-		
-		for(String h : orig.getHeaders())
-		{
-			if(h.startsWith("POST ") || h.startsWith("GET "))
-			{
-				String[] parts = h.split(" ");
-				request.addHeader(parts[0]+" "+url.getPath()+(url.getQuery() == null ? "" : "?"+url.getQuery())+" "+parts[2]);
-			}
-			else if(h.toLowerCase().startsWith("host: "))
-			{
-				request.addHeader("Host: "+url.getHost()+(url.getPort() != -1 ? ":"+url.getPort() : ""));
-			}
-			else
-			{
-				request.addHeader(h);
-			}
-		}
+		request.setRequestPath(url.getPath()+(url.getQuery() == null ? "" : "?"+url.getQuery()));
+		request.setHeader("Host", url.getHost()+(url.getPort() != -1 ? ":"+url.getPort() : ""));
 		
 		return request;
 	}
