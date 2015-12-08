@@ -112,7 +112,7 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 		
 		for(String h : orig.getHeaders())
 		{
-			if(h.startsWith("Location:"))
+			if(h.toLowerCase().startsWith("location:"))
 			{
 				String[] parts = h.split(":", 2);
 				response.addHeader("Location: "+rewriter.createAbsoluteUrl(url, parts[1].trim()));
@@ -171,7 +171,7 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 				String[] parts = h.split(" ");
 				request.addHeader(parts[0]+" "+url.getPath()+(url.getQuery() == null ? "" : "?"+url.getQuery())+" "+parts[2]);
 			}
-			else if(h.startsWith("Host: "))
+			else if(h.toLowerCase().startsWith("host: "))
 			{
 				request.addHeader("Host: "+url.getHost()+(url.getPort() != -1 ? ":"+url.getPort() : ""));
 			}

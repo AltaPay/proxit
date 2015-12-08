@@ -50,6 +50,7 @@ public class RawHttpSender
 		// Read the header
 		int bodyLength = -1;
 		String line;
+		boolean foundAcceptEncoding = false;
 		do
 		{
 			line = in.readLine();
@@ -62,20 +63,21 @@ public class RawHttpSender
 				// Swallow the next line (as this is empty)
 				in.readLine();
 			}
-			else if(line.startsWith("Content-Length: "))
+			else if(line.toLowerCase().startsWith("content-length: "))
 			{
 				bodyLength = Integer.parseInt(line.substring(15).trim());
 				request.addHeader(line);
 			}
-			else if(line.startsWith("Connection: "))
+			else if(line.toLowerCase().startsWith("connection: "))
 			{
 				request.addHeader("Connection: close");
 			}
-			else if(line.startsWith("Accept-Encoding: "))
+			else if(line.toLowerCase().startsWith("accept-encoding: "))
 			{
 				request.addHeader("Accept-Encoding: identity");
+				foundAcceptEncoding = true;
 			}
-			else if(line.equals("Expect: 100-continue"))
+			else if(line.toLowerCase().equals("expect: 100-continue"))
 			{
 				// Tell it to continue (to get the body)
 				clientSocket.getOutputStream().write("HTTP/1.1 100 Continue\n\n".getBytes());
@@ -86,6 +88,12 @@ public class RawHttpSender
 			}
 		}
 		while(!"".equals(line));
+		if(!foundAcceptEncoding)
+		{
+			request.getHeaders().remove(request.getHeaders().size()-1);
+			request.addHeader("Accept-Encoding: identity");
+			request.addHeader("");
+		}
 		
 		
 		
@@ -117,9 +125,11 @@ public class RawHttpSender
 	{
 		for(String h : message.getHeaders())
 		{
-			if(h.startsWith("Content-Length: "))
+			if(h.toLowerCase().startsWith("content-length: "))
 			{
+				System.out.println(h);
 				h = "Content-Length: "+message.getBody().length;
+				System.out.println(h);
 			}
 			out.write((h+"\r\n").getBytes());
 		}

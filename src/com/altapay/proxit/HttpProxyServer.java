@@ -47,6 +47,7 @@ public class HttpProxyServer implements HttpHandler
 		request.setHttpExchange(httpExchange);
 		
 		// Read the header
+		boolean foundAcceptEncoding = false;
 		request.addHeader(httpExchange.getRequestMethod()+" "+httpExchange.getRequestURI()+" HTTP/1.1");
 		for(Entry<String, List<String>> entry : httpExchange.getRequestHeaders().entrySet())
 		{
@@ -60,12 +61,17 @@ public class HttpProxyServer implements HttpHandler
 				else if(entry.getKey().equals("Accept-Encoding"))
 				{
 					request.addHeader("Accept-Encoding: identity");
+					foundAcceptEncoding = true;
 				}
 				else
 				{
 					request.addHeader(entry.getKey()+": "+s);
 				}
 			}
+		}
+		if(!foundAcceptEncoding)
+		{
+			request.addHeader("Accept-Encoding: identity");
 		}
 		request.addHeader("");
 		

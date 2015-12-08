@@ -154,6 +154,7 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 		String body = "";
 		if(orig.getBody() != null)
 		{
+			System.out.println("Body[before]: "+new String(orig.getBody()));
 			for(String s : new String(orig.getBody()).split("&"))
 			{
 				String[] parts = s.split("=", 2);
@@ -170,11 +171,12 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 				body += URLEncoder.encode(key, "utf-8")+"="+URLEncoder.encode(value, "utf-8");
 			}
 			request.setBody(body.getBytes());
+			System.out.println("Body[after]: "+new String(body.getBytes()));
 		}
 		
 		for(String h : orig.getHeaders())
 		{
-			if(h.startsWith("Host: "))
+			if(h.toLowerCase().startsWith("host: "))
 			{
 				request.addHeader("Host: "+config.getGatewayHost());
 			}
