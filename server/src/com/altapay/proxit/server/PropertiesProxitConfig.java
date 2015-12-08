@@ -5,6 +5,7 @@ import java.util.Properties;
 public class PropertiesProxitConfig implements IProxitConfig {
 
 	protected Properties properties;
+	private boolean isDev = true;
 
 	public PropertiesProxitConfig(Properties properties) {
 		this.properties = properties;
@@ -12,14 +13,20 @@ public class PropertiesProxitConfig implements IProxitConfig {
 
 	@Override
 	public String getGatewayHost() {
-		//return properties.getProperty("gatewayHost","gateway.dev.pensio.com");
+		if(isDev)
+		{
+			return properties.getProperty("gatewayHost","gateway.dev.pensio.com");
+		}
 		return properties.getProperty("gatewayHost","testgateway.altapaysecure.com");
 	}
 
 	@Override
 	public boolean getGatewaySsl()
 	{
-		//return "true".equals(properties.getProperty("gatewaySsl","false"));
+		if(isDev)
+		{
+			return "true".equals(properties.getProperty("gatewaySsl","false"));
+		}
 		return "true".equals(properties.getProperty("gatewaySsl","true"));
 	}
 
@@ -32,7 +39,10 @@ public class PropertiesProxitConfig implements IProxitConfig {
 	@Override
 	public String getCallbackBaseUrl()
 	{
-		//return properties.getProperty("gatewayHost","http://localhost:8080");
+		if(isDev)
+		{
+			return properties.getProperty("gatewayHost","http://localhost:8080");
+		}
 		return properties.getProperty("gatewayHost","http://proxitremote.devaltapaysecure.dk:8080");
 	}
 

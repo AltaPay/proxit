@@ -12,6 +12,8 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.bind.annotation.XmlTransient;
 
+import com.sun.net.httpserver.HttpExchange;
+
 @XmlRootElement(name="http")
 public class RawHttpMessage
 {
@@ -25,6 +27,8 @@ public class RawHttpMessage
 	}
 	private MessageType type = MessageType.REQUEST;
 	private Socket socket;
+	private HttpExchange httpExchange;
+	private RawHttpMessage response;
 	
 	public RawHttpMessage()
 	{
@@ -114,6 +118,7 @@ public class RawHttpMessage
 		try
 		{
 			JAXBContext context = JAXBContext.newInstance(RawHttpMessage.class);
+			System.out.println(type+","+headers.size()+" headers"+(body != null ? ", "+body.length+" bytes of body" : ""));
 			context.createMarshaller().marshal(this, out);
 			out.write("\n".getBytes());
 		}
@@ -169,5 +174,75 @@ public class RawHttpMessage
 			}
 		}
 		return false;
+	}
+
+	@XmlTransient
+	public HttpExchange getHttpExchange()
+	{
+		return httpExchange;
+	}
+
+	public void setHttpExchange(HttpExchange httpExchange)
+	{
+		this.httpExchange = httpExchange;
+	}
+
+	@XmlTransient
+	public synchronized void setResponse(RawHttpMessage response)
+	{
+		this.response = response;
+		notify();
+	}
+	
+	public void handleResponse()
+	{
+		// TODO: Deal with response not being null, because we timed out
+		byte[] bytes = response.getBody();
+		
+		int responseCode = -1;
+		for(String h : response.getHeaders())
+		{
+			System.out.println("Header: "+h);
+			if(h.startsWith("HTTP/1.1"))
+			{
+				// This is the first line
+				// "HTTP/1.1 200 OK"
+				String[] firstHeader = h.split(" ", 3);
+				responseCode = Integer.parseInt(firstHeader[1]);
+			}
+			else if(h.length() == 0)
+			{
+				// Ignore
+			}
+			else
+			{
+				String[] header = h.split(": ", 2);
+				httpExchange.getResponseHeaders().set(header[0], header[1]);
+			}
+		}
+		try
+		{
+			if(responseCode == 100)
+			{
+				httpExchange.sendResponseHeaders(responseCode, -1);
+			}
+			else
+			{
+				httpExchange.sendResponseHeaders(responseCode, bytes == null ? -1 : bytes.length);
+				if(bytes != null)
+				{
+					System.out.println(new String(bytes));
+					OutputStream os = httpExchange.getResponseBody();
+					os.write(bytes);
+					os.close();
+				}
+			}
+			//httpExchange.close();
+		}
+		catch(IOException e)
+		{
+			// Not sure what we should do
+			e.printStackTrace();
+		}
 	}
 }

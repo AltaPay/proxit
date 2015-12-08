@@ -57,6 +57,11 @@ public class RawHttpSender
 			{
 				throw new IOException("Connection closed before we read the whole HTTP request: "+request.getHeaders());
 			}
+			else if(line.startsWith("HTTP/1.1 100 Continue"))
+			{
+				// Swallow the next line (as this is empty)
+				in.readLine();
+			}
 			else if(line.startsWith("Content-Length: "))
 			{
 				bodyLength = Integer.parseInt(line.substring(15).trim());

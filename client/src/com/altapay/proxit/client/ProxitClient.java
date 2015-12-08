@@ -1,6 +1,7 @@
 package com.altapay.proxit.client;
 
 import java.io.IOException;
+import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -8,12 +9,14 @@ import java.net.URL;
 import java.net.UnknownHostException;
 
 import com.altapay.proxit.HTMLUrlRewriter;
+import com.altapay.proxit.HttpProxyServer;
 import com.altapay.proxit.ProxitConnection;
 import com.altapay.proxit.ProxitConnectionHandler;
 import com.altapay.proxit.RawHttpMessage;
 import com.altapay.proxit.RawHttpReceiver;
 import com.altapay.proxit.RawHttpSender;
 import com.altapay.proxit.ResponseSocketProvider;
+import com.sun.net.httpserver.HttpExchange;
 
 public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHandler
 {
@@ -22,7 +25,7 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 	private short serverPort;
 	private String serverHost;
 	private ProxitConnection serverCon;
-	private RawHttpReceiver httpRequestReceiver;
+	private HttpProxyServer httpRequestReceiver;
 	private Socket serverSocket;
 
 	public ProxitClient(short listenPort, short serverPort, String serverHost)
@@ -41,10 +44,8 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 		System.out.println("Connected to "+serverHost+":"+serverPort);
 		
 		// Listen for incoming requests
-		ServerSocket listenSocket = new ServerSocket(listenPort);
-		httpRequestReceiver = new RawHttpReceiver(listenSocket, this);
+		httpRequestReceiver = new HttpProxyServer(listenPort, this);
 		httpRequestReceiver.start();
-		System.out.println("Listening on port "+listenPort);
 	}
 
 	@Override
@@ -188,7 +189,8 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 	public void proxyResponse(RawHttpMessage response)
 	{
 		RawHttpMessage request = httpRequestReceiver.removeRequest(response.getId());
-		RawHttpSender.sendResponse(request.getSocket(), response);
+		
+		request.setResponse(response);
 	}
 
 }
