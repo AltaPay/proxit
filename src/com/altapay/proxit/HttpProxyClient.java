@@ -2,6 +2,7 @@ package com.altapay.proxit;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.net.URL;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -12,10 +13,12 @@ public class HttpProxyClient
 {
 
 	public static RawHttpMessage sendRequest(
-		HttpURLConnection con,
+		URL url,
 		RawHttpMessage request) throws IOException
 	{
-		System.out.println("\n======= sendRequest(start: "+con.getURL()+")");
+		System.out.println("\n======= sendRequest(start: "+url+")");
+		HttpURLConnection con = (HttpURLConnection) url.openConnection();
+		con.setInstanceFollowRedirects(false);
 
 		con.setRequestMethod(request.getRequestHttpMethod());
 		System.out.println(request.getHttpRequestLine());
@@ -43,7 +46,7 @@ public class HttpProxyClient
 			System.out.println("[wrote "+request.getBody().length+" bytes of body]");
 		}
 		
-		System.out.println("======= sendRequest(end: "+con.getURL()+")\n");
+		System.out.println("======= sendRequest(end: "+url+")\n");
 		
 		RawHttpMessage response = readResponse(con);
 		response.setId(request.getId());

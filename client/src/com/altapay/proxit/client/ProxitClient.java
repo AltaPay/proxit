@@ -2,7 +2,6 @@ package com.altapay.proxit.client;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
-import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
@@ -66,12 +65,10 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 		{
 			// Open a connection to the destination host
 			URL url = getUrlToCallbackTo(request);
-			
-			HttpURLConnection con = createSocketToDest(url);
-			
-			request = rewriteRequestForInside(request, url);
 
-			RawHttpMessage response = HttpProxyClient.sendRequest(con, request);
+			request = rewriteRequestForInside(request, url);
+			
+			RawHttpMessage response = HttpProxyClient.sendRequest(url, request);
 			
 			response = rewriteResponseFromTheInside(url, response);
 			
@@ -142,11 +139,6 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 		throw new RuntimeException("Could not figure out where to post the callback on the dev machine: "+request.getRequestPath());
 	}
 	
-	private HttpURLConnection createSocketToDest(URL url) throws UnknownHostException, IOException
-	{
-		return (HttpURLConnection)url.openConnection();
-	}
-
 	private RawHttpMessage rewriteRequestForInside(RawHttpMessage orig, URL url) throws UnsupportedEncodingException
 	{
 		RawHttpMessage request = orig.copy();

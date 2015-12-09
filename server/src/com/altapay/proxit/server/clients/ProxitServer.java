@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
@@ -11,13 +12,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
-import javax.net.ssl.SSLSocketFactory;
-
+import com.altapay.proxit.HttpProxyClient;
 import com.altapay.proxit.HttpProxyServer;
 import com.altapay.proxit.ProxitConnection;
 import com.altapay.proxit.ProxitConnectionHandler;
 import com.altapay.proxit.RawHttpMessage;
-import com.altapay.proxit.RawHttpSender;
 import com.altapay.proxit.ResponseSocketProvider;
 import com.altapay.proxit.server.IProxitConfig;
 
@@ -100,17 +99,25 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 		try
 		{
 			// Open a connection to the destination host
-			Socket s = createSocketToDest();
-			
 			request = rewriteRequestForOutside(request);
 			
-			RawHttpMessage response = RawHttpSender.sendRequest(s, request);
+			URL url = new URL(config.getGatewayHost()+request.getRequestPath());
+
+			RawHttpMessage response = HttpProxyClient.sendRequest(url, request);
 			
 			client.sendMessage(response);
 		}
-		catch(IOException e)
+		catch (Throwable t)
 		{
-			e.printStackTrace();
+			t.printStackTrace(System.out);
+			try
+			{
+				client.sendMessage(RawHttpMessage.get404Response(request.getId(), t.getMessage()));
+			}
+			catch (Throwable e)
+			{
+				e.printStackTrace();
+			}
 		}
 	}
 	
@@ -162,21 +169,6 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 		request.setHeader("Host", config.getGatewayHost());
 		
 		return request;
-	}
-
-	private Socket createSocketToDest() throws UnknownHostException, IOException
-	{
-		if(config.getGatewaySsl())
-		{
-			SSLSocketFactory factory=(SSLSocketFactory) SSLSocketFactory.getDefault();
-			//System.out.println("Connecting to: https://"+config.getGatewayHost()+":443");
-			return factory.createSocket(config.getGatewayHost(), 443);
-		}
-		else
-		{
-			//System.out.println("Connecting to: http://"+config.getGatewayHost()+":80");
-			return new Socket(config.getGatewayHost(), 80);
-		}
 	}
 
 	@Override

@@ -15,19 +15,9 @@ public class PropertiesProxitConfig implements IProxitConfig {
 	public String getGatewayHost() {
 		if(isDev)
 		{
-			return properties.getProperty("gatewayHost","gateway.dev.pensio.com");
+			return properties.getProperty("gatewayHost","http://gateway.dev.pensio.com");
 		}
-		return properties.getProperty("gatewayHost","testgateway.altapaysecure.com");
-	}
-
-	@Override
-	public boolean getGatewaySsl()
-	{
-		if(isDev)
-		{
-			return "true".equals(properties.getProperty("gatewaySsl","false"));
-		}
-		return "true".equals(properties.getProperty("gatewaySsl","true"));
+		return properties.getProperty("gatewayHost","https://testgateway.altapaysecure.com");
 	}
 
 	@Override
