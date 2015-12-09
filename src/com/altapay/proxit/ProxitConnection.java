@@ -10,10 +10,7 @@ import java.util.UUID;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
-import javax.xml.bind.UnmarshalException;
 import javax.xml.bind.Unmarshaller;
-
-import org.xml.sax.SAXParseException;
 
 import com.altapay.proxit.RawHttpMessage.MessageType;
 

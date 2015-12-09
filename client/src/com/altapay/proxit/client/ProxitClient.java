@@ -2,17 +2,18 @@ package com.altapay.proxit.client;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.Socket;
 import java.net.URL;
 import java.net.UnknownHostException;
 
 import com.altapay.proxit.HTMLUrlRewriter;
+import com.altapay.proxit.HttpProxyClient;
 import com.altapay.proxit.HttpProxyServer;
 import com.altapay.proxit.ProxitConnection;
 import com.altapay.proxit.ProxitConnectionHandler;
 import com.altapay.proxit.RawHttpHeader;
 import com.altapay.proxit.RawHttpMessage;
-import com.altapay.proxit.RawHttpSender;
 import com.altapay.proxit.ResponseSocketProvider;
 
 public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHandler
@@ -66,11 +67,11 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 			// Open a connection to the destination host
 			URL url = getUrlToCallbackTo(request);
 			
-			Socket s = createSocketToDest(url);
+			HttpURLConnection con = createSocketToDest(url);
 			
 			request = rewriteRequestForInside(request, url);
 
-			RawHttpMessage response = RawHttpSender.sendRequest(s, request);
+			RawHttpMessage response = HttpProxyClient.sendRequest(con, request);
 			
 			response = rewriteResponseFromTheInside(url, response);
 			
@@ -141,11 +142,9 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 		throw new RuntimeException("Could not figure out where to post the callback on the dev machine: "+request.getRequestPath());
 	}
 	
-	private Socket createSocketToDest(URL url) throws UnknownHostException, IOException
+	private HttpURLConnection createSocketToDest(URL url) throws UnknownHostException, IOException
 	{
-		boolean https = "https".equals(url.getProtocol());
-		
-		return new Socket(url.getHost(), url.getPort() == -1 ? (https ? 443 : 80) : url.getPort());
+		return (HttpURLConnection)url.openConnection();
 	}
 
 	private RawHttpMessage rewriteRequestForInside(RawHttpMessage orig, URL url) throws UnsupportedEncodingException
