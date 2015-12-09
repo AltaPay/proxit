@@ -2,9 +2,12 @@ package com.altapay.proxit;
 
 import java.io.IOException;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.UUID;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.xml.bind.DatatypeConverter;
 import javax.xml.bind.JAXBContext;
@@ -381,5 +384,34 @@ public class RawHttpMessage
 	public void setHttpProtocolVersion(String httpProtocolVersion)
 	{
 		this.httpProtocolVersion = httpProtocolVersion;
+	}
+
+	@XmlTransient
+	public Charset getBodyCharset()
+	{
+		// Try the headers
+		for(RawHttpHeader h : headers)
+		{
+			if(h.matches("Content-Type"))
+			{
+				Pattern p = Pattern.compile("charset=(.+)", Pattern.CASE_INSENSITIVE);
+				Matcher m = p.matcher(h.getValue());
+				if(m.find())
+				{
+					return Charset.forName(m.group(1));
+				}
+			}
+		}
+		
+		// Scan for 
+		String utf8Body = new String(getBody(), Charset.forName("UTF-8"));
+		Pattern p = Pattern.compile("<meta charset=\"([^\"]+)\">", Pattern.CASE_INSENSITIVE);
+		Matcher m = p.matcher(utf8Body);
+		if(m.find())
+		{
+			return Charset.forName(m.group(1));
+		}
+		
+		return Charset.forName("UTF-8");
 	}
 }

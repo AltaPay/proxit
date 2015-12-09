@@ -124,7 +124,7 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 		{
 			if(response.isContentTypeText())
 			{
-				StringBuffer b = rewriter.proxyResourceUrls(config.getCallbackBaseUrl()+"/cb/"+response.getConnectionId()+"?", new StringBuffer(new String(response.getBody())));
+				StringBuffer b = rewriter.proxyResourceUrls(config.getCallbackBaseUrl()+"/cb/"+response.getConnectionId()+"?", new StringBuffer(new String(response.getBody(), response.getBodyCharset())));
 				response.setBody(b.toString().getBytes());
 			}
 		}
