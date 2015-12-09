@@ -12,7 +12,7 @@ public class ResourcesProxyRewriter
 		for(String quoteChar : new String[]{"\"", "'"})
 		{
 			html = unproxyResourceUrl(proxyCallbackUrl, html, "(<[a-zA-Z][a-zA-Z0-9]*[^>]*)(src="+quoteChar+")(https?://[^"+quoteChar+"]*)("+quoteChar+"[^>]*>)");
-			//html = unproxyResourceUrl(proxyCallbackUrl, html, "(<[a-zA-Z][a-zA-Z0-9]*[^>]*)(href="+quoteChar+")(https?://[^"+quoteChar+"]*)("+quoteChar+"[^>]*>)");
+			html = unproxyResourceUrl(proxyCallbackUrl, html, "(<link[^>]*)(href="+quoteChar+")(https?://[^"+quoteChar+"]*)("+quoteChar+"[^>]*>)");
 
 			// TODO: html = preg_replace_callback('/(<[a-z]*[^>]*style='.$qouteChar.')([^'.$qouteChar.']*)('.$qouteChar.'[^>]*>)/i',                                  array($this, 'fixInlineStyleSheetURLsByLoadingThroughOurGateway'), $html);
 		}
