@@ -34,6 +34,9 @@ public class ProxitClient implements ResponseSocketProvider, ProxitConnectionHan
 	
 	public void start() throws UnknownHostException, IOException
 	{
+		// We do not need to verify SSL (since developers may have broken/invalid ones)
+		HttpProxyClient.setDoNotVerifySslCertificates();
+		
 		// Connect to server
 		serverSocket = new Socket(serverHost, serverPort);
 		serverCon = new ProxitConnection(this, null, serverSocket);

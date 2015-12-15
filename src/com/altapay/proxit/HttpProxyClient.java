@@ -3,14 +3,74 @@ package com.altapay.proxit;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map.Entry;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 
 import com.google.common.io.ByteStreams;
 
 
 public class HttpProxyClient
 {
+	public static void setDoNotVerifySslCertificates() {
+		
+		try
+		{
+			// Create a trust manager that does not validate certificate chains
+			X509TrustManager trustManager = new X509TrustManager()
+			{
+				public java.security.cert.X509Certificate[] getAcceptedIssuers()
+				{
+					return null;
+				}
+				
+				public void checkClientTrusted(
+					X509Certificate[] certs,
+					String authType)
+				{
+					// fine
+				}
+				
+				public void checkServerTrusted(
+					X509Certificate[] certs,
+					String authType)
+				{
+				}
+			};
+			
+			// Install the all-trusting trust manager
+			final SSLContext sc = SSLContext.getInstance("SSL");
+			sc.init(null,
+				new TrustManager[]{ trustManager },
+				new java.security.SecureRandom());
+			HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+			
+			// Create all-trusting host name verifier
+			HostnameVerifier allHostsValid = new HostnameVerifier()
+			{
+				@Override
+				public boolean verify(String hostname, SSLSession session)
+				{
+					return true;
+				}
+			};
+
+			// Install the all-trusting host verifier
+			HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace(System.out);
+		}
+	}
 
 	public static RawHttpMessage sendRequest(
 		URL url,

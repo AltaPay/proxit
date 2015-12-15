@@ -107,12 +107,10 @@ public class ProxitConnection
 			}
 			catch (JAXBException e1)
 			{
-				// TODO Auto-generated catch block
 				e1.printStackTrace(System.out);
 			}
 			catch (IOException e)
 			{
-				// TODO Auto-generated catch block
 				e.printStackTrace(System.out);
 			}
 			finally
