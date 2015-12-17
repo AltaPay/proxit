@@ -116,7 +116,7 @@ public class ProxitServer implements Runnable, ResponseSocketProvider, ProxitCon
 			}
 			catch (Throwable e)
 			{
-				e.printStackTrace();
+				e.printStackTrace(System.out);
 			}
 		}
 	}

@@ -139,8 +139,16 @@ public class HttpProxyClient
 			}
 		}
 		System.out.println();
-		
-		response.setBody(ByteStreams.toByteArray(con.getInputStream()));
+
+		try
+		{
+			response.setBody(ByteStreams.toByteArray(con.getInputStream()));
+		}
+		catch(IOException e)
+		{
+			e.printStackTrace(System.out);
+			response.setBody(new byte[0]);
+		}
 		System.out.println("[Body: ("+response.getBody().length+" bytes)]");
 		System.out.println("======= readResponse(end: "+con.getURL()+")\n");
 		
