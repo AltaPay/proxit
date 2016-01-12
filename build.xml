@@ -6,13 +6,32 @@
 		<antcall target="ProxitLocalServer.jar" />
 	</target>
 	
-	<target name="ProxitRemoteServer.jar">
+	<target name="Initialize">
+		<mkdir dir="build" />
+		<mkdir dir="dist" />
+	</target>
+	
+	<target name="CompileSource" depends="Initialize">
+		<javac 
+			destdir="build" 
+			debug="true" 
+			target="1.7" 
+			includeantruntime="false" 
+			classpath="lib/bcprov-jdk14-144.jar:lib/guava-18.0.jar" 
+			encoding="UTF-8">
+			<src path="src/"/>
+			<src path="server/src/"/>
+			<src path="client/src/"/>
+		</javac>
+	</target>	
+	
+	<target name="ProxitRemoteServer.jar" depends="CompileSource">
 		<jar destfile="dist/ProxitRemoteServer.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="com.altapay.proxit.server.LaunchServer"/>
 				<attribute name="Class-Path" value="."/>
 			</manifest>
-			<fileset dir="bin">
+			<fileset dir="build">
 				<include name="**/*"/>
 				<exclude name="com/altapay/proxit/client"/>
 				<exclude name="com/altapay/proxit/client/**/*"/>
@@ -21,13 +40,13 @@
 			<zipfileset excludes="META-INF/*.SF" src="lib/guava-18.0.jar"/>
 		</jar>
 	</target>
-	<target name="ProxitLocalServer.jar">
+	<target name="ProxitLocalServer.jar" depends="CompileSource">
 		<jar destfile="dist/ProxitLocalServer.jar" filesetmanifest="mergewithoutmain">
 			<manifest>
 				<attribute name="Main-Class" value="com.altapay.proxit.client.LaunchClient"/>
 				<attribute name="Class-Path" value="."/>
 			</manifest>
-			<fileset dir="bin">
+			<fileset dir="build">
 				<include name="**/*"/>
 				<exclude name="com/altapay/proxit/server"/>
 				<exclude name="com/altapay/proxit/server/**/*"/>
