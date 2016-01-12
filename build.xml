@@ -12,13 +12,13 @@
 				<attribute name="Main-Class" value="com.altapay.proxit.server.LaunchServer"/>
 				<attribute name="Class-Path" value="."/>
 			</manifest>
-			<fileset dir="/home/emanuel/Development/workspace_jee/Proxit/bin">
+			<fileset dir="bin">
 				<include name="**/*"/>
 				<exclude name="com/altapay/proxit/client"/>
 				<exclude name="com/altapay/proxit/client/**/*"/>
 			</fileset>
-			<zipfileset excludes="META-INF/*.SF" src="/home/emanuel/Development/workspace_jee/Proxit/lib/bcprov-jdk14-144.jar"/>
-			<zipfileset excludes="META-INF/*.SF" src="/home/emanuel/Development/workspace_jee/Proxit/lib/guava-18.0.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="lib/bcprov-jdk14-144.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="lib/guava-18.0.jar"/>
 		</jar>
 	</target>
 	<target name="ProxitLocalServer.jar">
@@ -27,13 +27,13 @@
 				<attribute name="Main-Class" value="com.altapay.proxit.client.LaunchClient"/>
 				<attribute name="Class-Path" value="."/>
 			</manifest>
-			<fileset dir="/home/emanuel/Development/workspace_jee/Proxit/bin">
+			<fileset dir="bin">
 				<include name="**/*"/>
 				<exclude name="com/altapay/proxit/server"/>
 				<exclude name="com/altapay/proxit/server/**/*"/>
 			</fileset>
-			<zipfileset excludes="META-INF/*.SF" src="/home/emanuel/Development/workspace_jee/Proxit/lib/bcprov-jdk14-144.jar"/>
-			<zipfileset excludes="META-INF/*.SF" src="/home/emanuel/Development/workspace_jee/Proxit/lib/guava-18.0.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="lib/bcprov-jdk14-144.jar"/>
+			<zipfileset excludes="META-INF/*.SF" src="lib/guava-18.0.jar"/>
 		</jar>
 	</target>
 </project>
